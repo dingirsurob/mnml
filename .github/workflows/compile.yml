@@ -5,14 +5,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configurar Java
+
+      - name: Configurar Java 11 (Compatible con MNML)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '11'
+
+      - name: Otorgar permisos de ejecucion a Gradle
+        run: chmod +x gradlew
+
       - name: Compilar con Gradle
         run: ./gradlew assembleDebug
-      - name: Guardar APK
+
+      - name: Guardar APK obtenido
         uses: actions/upload-artifact@v4
         with:
           name: mnml-apk
