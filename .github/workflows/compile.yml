@@ -2,25 +2,22 @@ name: Compilar APK
 on: [push, workflow_dispatch]
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Configurar Java 11
-        uses: actions/setup-java@v4
+      - name: Configurar Java 17
+        uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
-          java-version: '11'
+          java-version: '17'
 
-      - name: Actualizar e instalar dependencias de 32-bit
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
-
-      - name: Forzar actualización de Gradle Wrapper
+      - name: Forzar compatibilidad con Java moderno en el proyecto
         run: |
           chmod +x gradlew
-          ./gradlew wrapper --gradle-version 7.5
+          sed -i 's/compileSdkVersion 28/compileSdkVersion 34/g' app/build.gradle
+          sed -i 's/targetSdkVersion 28/targetSdkVersion 34/g' app/build.gradle
+          ./gradlew wrapper --gradle-version 8.4
 
       - name: Compilar con Gradle
         run: ./gradlew assembleDebug
