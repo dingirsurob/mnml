@@ -2,29 +2,25 @@ name: Compilar APK
 on: [push, workflow_dispatch]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: Configurar Java 17
-        uses: actions/setup-java@v5
+      - name: Configurar Java 8 (Versión nativa de MNML)
+        uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: 'temurin'
+          java-version: '8'
 
-      - name: Forzar compatibilidad con Java moderno en el proyecto
+      - name: Aceptar licencias del SDK de Android automáticamente
         run: |
-          chmod +x gradlew
-          sed -i 's/compileSdkVersion 28/compileSdkVersion 34/g' app/build.gradle
-          sed -i 's/targetSdkVersion 28/targetSdkVersion 34/g' app/build.gradle
-          ./gradlew wrapper --gradle-version 8.4
+          mkdir -p ${ANDROID_HOME}/licenses
+          echo -e "\n893a5cd8e1c6392d9c74d8e74d3752e9fc534316\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > ${ANDROID_HOME}/licenses/android-sdk-license
+          echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > ${ANDROID_HOME}/licenses/android-sdk-preview-license
 
-      - name: Compilar con Gradle
-        run: ./gradlew assembleDebug
+      - name: Dar permisos de ejecución al compilador
+        run: chmod +x gradlew
 
-      - name: Guardar APK obtenido
-        uses: actions/upload-artifact@v4
-        with:
-          name: mnml-apk
-          path: app/build/outputs/apk/debug/*.apk
-          
+      - name: Limpiar y Compilar Proyecto Original
+        run: ./gradlew clean assembleDebug --stacktrace
+        
