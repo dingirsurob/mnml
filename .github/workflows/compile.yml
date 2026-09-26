@@ -23,19 +23,37 @@ jobs:
           gradle wrapper --gradle-version 6.9.4
           chmod +x gradlew
 
-      - name: Extirpar servidores muertos de Fabric
+      - name: Sobreescribir build.gradle (Eliminación radical de Fabric)
         run: |
-          # Eliminar la línea del repositorio de Fabric que da error 403
-          sed -i '/maven { url '\''https:\/\/maven.fabric.io\/public'\'' }/d' build.gradle
-          
-          # Eliminar la dependencia del plugin de Fabric obsoleta
-          sed -i '/classpath '\''io.fabric.tools:gradle:/d' build.gradle
-          
-          # Eliminar la aplicación del plugin en el archivo del módulo de la app
-          sed -i '/apply plugin: '\''io.fabric'\''/d' app/build.gradle
-          
-          # Asegurar que se busquen las dependencias en repositorios vivos de Google y MavenCentral
-          sed -i 's/jcenter()/mavenCentral()/g' build.gradle
+          cat << 'EOF' > build.gradle
+          buildscript {
+              ext.kotlin_version = '1.3.50'
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:3.5.0'
+                  classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+              }
+          }
+
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven { url 'https://jitpack.io' }
+              }
+          }
+
+          task clean(type: Delete) {
+              delete rootProject.buildDir
+          }
+          EOF
+
+      - name: Limpiar plugin Fabric del subproyecto
+        run: |
+          sed -i '/io.fabric/d' app/build.gradle || true
 
       - name: Aceptar licencias del SDK de Android
         run: |
