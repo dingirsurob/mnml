@@ -23,6 +23,20 @@ jobs:
           gradle wrapper --gradle-version 6.9.4
           chmod +x gradlew
 
+      - name: Extirpar servidores muertos de Fabric
+        run: |
+          # Eliminar la línea del repositorio de Fabric que da error 403
+          sed -i '/maven { url '\''https:\/\/maven.fabric.io\/public'\'' }/d' build.gradle
+          
+          # Eliminar la dependencia del plugin de Fabric obsoleta
+          sed -i '/classpath '\''io.fabric.tools:gradle:/d' build.gradle
+          
+          # Eliminar la aplicación del plugin en el archivo del módulo de la app
+          sed -i '/apply plugin: '\''io.fabric'\''/d' app/build.gradle
+          
+          # Asegurar que se busquen las dependencias en repositorios vivos de Google y MavenCentral
+          sed -i 's/jcenter()/mavenCentral()/g' build.gradle
+
       - name: Aceptar licencias del SDK de Android
         run: |
           mkdir -p ${ANDROID_HOME}/licenses
